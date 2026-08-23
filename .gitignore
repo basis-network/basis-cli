@@ -1,0 +1,19 @@
+# ---------------------------------------------------------------------------
+# Los ejecutables NO se versionan.
+#
+# Son 52 MB por version y git no olvida: diez versiones son medio giga en la
+# historia, y sacarlos despues obliga a reescribirla. Viven en el bucket de
+# descargas; lo que si se versiona es `SHA256SUMS`, con lo que la integridad
+# de lo que te bajes se puede comprobar contra este repositorio.
+# ---------------------------------------------------------------------------
+bin/*/basis
+bin/*/basis-node
+bin/*/*.exe
+
+# Ruido del sistema y del editor
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
