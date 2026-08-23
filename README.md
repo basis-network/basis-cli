@@ -9,24 +9,41 @@ Esta carpeta tiene dos mitades y hace falta entender por qué:
 
 | Carpeta | Qué guarda | Estado |
 |---|---|---|
-| [`bin/`](./bin) | Los ejecutables ya compilados, por plataforma | Presentes y verificados |
+| [`bin/`](./bin) | Los `SHA256SUMS` por plataforma | Los ejecutables se descargan — ver abajo |
 | [`src/`](./src) | El código fuente (`basis-core`) | **Vacío** — ver `src/README.md` |
 
 ---
 
 ## Los binarios
 
+Los ejecutables **no están en este repositorio**: son 52 MB por versión y git
+no olvida, así que diez versiones serían medio giga de historia y sacarlos
+después obligaría a reescribirla. Viven en un bucket de Cloud Storage:
+
 ```
-bin/
+gs://basis-releases/cli/2026-08-20/
 ├── linux-x86_64/     basis · basis-node · SHA256SUMS
 └── windows-x86_64/   basis.exe · basis-node.exe · SHA256SUMS
 ```
 
-Comprobar la integridad antes de usar o distribuir:
+Lo que **sí** está versionado aquí son los `SHA256SUMS`. Esa es toda la idea:
+la suma viaja por un canal que se revisa —commits, revisiones, historia— y el
+binario por otro. Si alguien altera lo que hay en el bucket, `sha256sum -c`
+contra la copia de este repositorio lo delata.
 
 ```bash
+./descargar.sh linux-x86_64      # baja y verifica en un paso
+```
+
+o a mano:
+
+```bash
+gcloud storage cp -r gs://basis-releases/cli/2026-08-20/linux-x86_64 bin/
 cd bin/linux-x86_64 && sha256sum -c SHA256SUMS
 ```
+
+El bucket es privado: hace falta acceso al proyecto `basis-devnet`. Publicarlo
+es una decisión aparte, y la red todavía no está lanzada.
 
 **Linux** — compilados por el equipo el 2026-08-20 desde `basis-core` `f74b78e`
 con `rustc` 1.96.1, dentro de `rust:1.96-bookworm` (Debian 12, glibc 2.36) para
