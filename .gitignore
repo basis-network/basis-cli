@@ -16,6 +16,11 @@
 # ---------------------------------------------------------------------------
 bin/
 
+# `test/coverage.sh` writes both of these: the report, and the sandboxes it
+# has to keep in order to measure anything at all.
+coverage/
+covtmp/
+
 # System and editor noise
 .DS_Store
 Thumbs.db
