@@ -6,19 +6,28 @@ than saying so.
 ## Who decides
 
 **Sebastián Quintero** ([@sebastian-quintero-osorio](https://github.com/sebastian-quintero-osorio))
-is the maintainer and has final say on what is merged, released and documented
-here. He is also the security contact and the person responsible for licence
-compliance.
+is the lead maintainer and has final say on what is merged, released and
+documented here. He is also the security contact and the person responsible for
+licence compliance.
 
-There is currently **one maintainer**. That is a real limitation, stated rather
-than hidden: it means a single point of failure for reviews, releases and
-response times. Adding maintainers is on the list, and the section below says
-how that happens.
+**David Aquiles** ([@DavidAquiles](https://github.com/DavidAquiles)) is the
+second maintainer, with the same access: owner of the organisation, able to
+merge and able to publish a release. That is the whole point of the role — the
+project does not stop, and nothing becomes unreachable, if one person is not
+available.
+
+**Two maintainers**, and it is worth being exact about what that buys and what
+it does not. It removes the single point of failure for access, for releases
+and for a vulnerability report going unread. It does not yet mean every change
+gets a second pair of eyes: with two people, requiring each to review the other
+would stall the project the first time either one is away. Changes still land
+through pull requests, and a second review happens when it can rather than
+being promised and skipped.
 
 ## How decisions get made
 
 - **Documentation and script changes** — pull request, reviewed and merged by
-  the maintainer.
+  a maintainer.
 - **Anything that changes what this repository vouches for** — for example
   dropping a binary from distribution, or changing how checksums are anchored —
   goes in the CHANGELOG under its own heading, with the reasoning, whether or
@@ -31,8 +40,9 @@ how that happens.
 
 By sustained contribution — issues that turn out to be right, reviews that
 catch things, documentation that survives contact with readers — and then by
-invitation from an existing maintainer. There is no committee and no vote,
-because with one maintainer a vote would be theatre.
+invitation, which both maintainers have to agree on. There is no committee and
+no vote: with two people a vote is either unanimous or deadlocked, and neither
+is a decision procedure worth writing down.
 
 ## Releases
 
