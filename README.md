@@ -63,6 +63,10 @@ That is also why `download.sh` never downloads the checksum, and why
 [the release workflow](./.github/workflows/release.yml) verifies every
 published asset against the committed checksums before signing it.
 
+Assets are signed with [Sigstore](https://www.sigstore.dev/) cosign in keyless
+mode — there is no private key, and the certificate is in the public Rekor
+transparency log. See [SECURITY.md](./SECURITY.md#signatures) to verify one.
+
 ## Where the source is
 
 Not here. The CLI is built from `basis-core`, the node workspace, which is not
