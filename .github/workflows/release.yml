@@ -18,7 +18,7 @@
 # Verify a download with:
 #
 #   cosign verify-blob basis-linux-x86_64 \
-#     --bundle basis-linux-x86_64.cosign.bundle \
+#     --bundle basis-linux-x86_64.sigstore \
 #     --certificate-identity-regexp \
 #       'https://github.com/basis-network/basis-cli/.github/workflows/release.yml@.*' \
 #     --certificate-oidc-issuer https://token.actions.githubusercontent.com
@@ -27,6 +27,13 @@ name: release
 on:
   release:
     types: [published]
+  # So a release can be re-verified and re-signed without republishing it.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Tag to verify and sign
+        required: true
+        type: string
 
 permissions: read-all
 
@@ -49,7 +56,7 @@ jobs:
       - name: Download the published assets
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.event.release.tag_name }}
+          TAG: ${{ github.event.release.tag_name || inputs.tag }}
         run: |
           set -euo pipefail
           mkdir -p _assets
@@ -58,7 +65,7 @@ jobs:
 
       - name: Check every asset against the committed checksums
         env:
-          TAG: ${{ github.event.release.tag_name }}
+          TAG: ${{ github.event.release.tag_name || inputs.tag }}
         run: |
           set -euo pipefail
           [ -d "checksums/$TAG" ] || { echo "no checksums/$TAG in this repository"; exit 1; }
@@ -75,19 +82,23 @@ jobs:
 
       - name: Sign each asset
         env:
-          TAG: ${{ github.event.release.tag_name }}
+          TAG: ${{ github.event.release.tag_name || inputs.tag }}
         run: |
           set -euo pipefail
           for f in _assets/*; do
-            case "$f" in *.cosign.bundle) continue ;; esac
-            cosign sign-blob --yes "$f" --bundle "$f.cosign.bundle"
+            # Skip signatures, including any left by an earlier run.
+            case "$f" in *.sigstore|*.cosign.bundle) continue ;; esac
+            # `.sigstore` is the canonical name for a Sigstore bundle, and it
+            # is also the extension tooling looks for -- OpenSSF Scorecard
+            # scores a release as unsigned if it cannot recognise the file.
+            cosign sign-blob --yes --new-bundle-format "$f" --bundle "$f.sigstore"
           done
           ls -l _assets
 
       - name: Attach the signatures to the release
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.event.release.tag_name }}
+          TAG: ${{ github.event.release.tag_name || inputs.tag }}
         run: |
           set -euo pipefail
-          gh release upload "$TAG" _assets/*.cosign.bundle --clobber --repo "$GITHUB_REPOSITORY"
+          gh release upload "$TAG" _assets/*.sigstore --clobber --repo "$GITHUB_REPOSITORY"

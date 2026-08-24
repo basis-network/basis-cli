@@ -15,7 +15,7 @@ number, only the date they were copied.
 
   ```bash
   cosign verify-blob basis-linux-x86_64 \
-    --bundle basis-linux-x86_64.cosign.bundle \
+    --bundle basis-linux-x86_64.sigstore \
     --certificate-identity-regexp \
       'https://github.com/basis-network/basis-cli/.github/workflows/release.yml@.*' \
     --certificate-oidc-issuer https://token.actions.githubusercontent.com
