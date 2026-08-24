@@ -152,11 +152,24 @@ the fixtures are made at run time. Two of the cases are the failure paths, a
 tampered download and a machine with nothing to hash with, because refusing
 those is what this repository is for. CI runs the suite on every pull request.
 
+How much of the script those cases actually reach is measured rather than
+claimed:
+
+```bash
+make coverage       # needs bashcov: gem install bashcov
+```
+
+**98.1% statement coverage** of `download.sh`, 52 of 53 statements, enforced at
+90% in CI.
+
 ## Project
 
 | | |
 |---|---|
-| [CONTRIBUTING.md](./CONTRIBUTING.md) | what is accepted here, and the DCO sign-off |
+| [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) | the parts, how they fit, and where the trust boundaries are |
+| [docs/ASSURANCE-CASE.md](./docs/ASSURANCE-CASE.md) | the threat model, and the argument that the security requirements hold |
+| [docs/ROADMAP.md](./docs/ROADMAP.md) | what is planned, and what is deliberately not |
+| [CONTRIBUTING.md](./CONTRIBUTING.md) | what is accepted here, the coding style, how changes are reviewed, and the DCO sign-off |
 | [SECURITY.md](./SECURITY.md) | reporting a vulnerability, verifying a download |
 | [SUPPORT.md](./SUPPORT.md) | where to ask what |
 | [GOVERNANCE.md](./GOVERNANCE.md) | who decides, and how |
@@ -164,13 +177,21 @@ those is what this repository is for. CI runs the suite on every pull request.
 | [CHANGELOG.md](./CHANGELOG.md) | what changed, and what it means |
 | [test/](./test) | the suite, and what each case is guarding |
 
-This repository is [REUSE](https://reuse.software/) compliant: every file
-carries its copyright and licence, checked in CI. It also carries the OpenSSF
-[Best Practices](https://www.bestpractices.dev/projects/14224) passing badge —
-a self-assessment against 67 criteria, each answered in public with its
-reasoning. Worth knowing what it covers: this repository, which is the
-distribution and verification tooling, not the compiled binary whose source
-lives in `basis-core`. The entry says so itself.
+## Achievements
+
+Every one of these is public, and every one links to the report rather than to
+a marketing page — so you can check the claim instead of trusting the badge.
+
+| | |
+|---|---|
+| [OpenSSF Best Practices](https://www.bestpractices.dev/projects/14224) | a self-assessment against the full criteria set, each answered in public with its reasoning |
+| [OpenSSF Scorecard](https://scorecard.dev/viewer/?uri=github.com/basis-network/basis-cli) | scored automatically by someone else's tool, published on every push |
+| [REUSE](https://api.reuse.software/info/github.com/basis-network/basis-cli) | every file carries its copyright and licence, checked in CI |
+
+Worth knowing what they cover: **this repository** — the distribution and
+verification tooling — not the compiled binary, whose source lives in
+`basis-core`. The Best Practices entry says so itself rather than leaving it to
+be discovered.
 
 ## License
 

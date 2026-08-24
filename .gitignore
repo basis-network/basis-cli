@@ -6,7 +6,7 @@
 #
 # They are megabytes each and git never forgets: ten releases would live in
 # every clone forever, and removing them afterwards means rewriting history.
-# They are served from a storage bucket instead.
+# They are attached to GitHub releases instead.
 #
 # What IS versioned is `checksums/`, so the integrity of whatever you download
 # can be checked against this repository. That split is the point -- see the
