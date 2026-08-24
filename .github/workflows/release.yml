@@ -1,0 +1,93 @@
+# SPDX-FileCopyrightText: 2026 BASE COMPUTING S.A.S.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Verifies and signs release assets.
+#
+# It runs when a release is PUBLISHED, not when a tag is pushed, so what it
+# checks and signs is exactly what people will download -- not a rebuild that
+# happens to look like it.
+#
+# Two things happen here:
+#   1. every asset is checked against `checksums/<tag>/`, which lives in git.
+#      A release whose binary does not match the committed checksum fails
+#      loudly instead of sitting there being wrong;
+#   2. each asset is signed with cosign in keyless mode. There is no private
+#      key anywhere: the signing identity is this workflow's OIDC token, and
+#      the certificate is recorded in the public Rekor transparency log.
+#
+# Verify a download with:
+#
+#   cosign verify-blob basis-linux-x86_64 \
+#     --bundle basis-linux-x86_64.cosign.bundle \
+#     --certificate-identity-regexp \
+#       'https://github.com/basis-network/basis-cli/.github/workflows/release.yml@.*' \
+#     --certificate-oidc-issuer https://token.actions.githubusercontent.com
+name: release
+
+on:
+  release:
+    types: [published]
+
+permissions: read-all
+
+jobs:
+  verify-and-sign:
+    name: verify against checksums, then sign
+    runs-on: ubuntu-latest
+    permissions:
+      # Upload signatures back onto the release.
+      contents: write
+      # Keyless signing: this is the identity, and there is no other.
+      id-token: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+
+      - uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3
+
+      - name: Download the published assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          mkdir -p _assets
+          gh release download "$TAG" --dir _assets --pattern '*' --repo "$GITHUB_REPOSITORY"
+          ls -l _assets
+
+      - name: Check every asset against the committed checksums
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          [ -d "checksums/$TAG" ] || { echo "no checksums/$TAG in this repository"; exit 1; }
+          for sums in "checksums/$TAG"/*.sha256; do
+            platform="$(basename "$sums" .sha256)"
+            while read -r sum name; do
+              stem="${name%.*}"
+              ext=""; [ "$stem" != "$name" ] && ext=".${name##*.}"
+              asset="_assets/$stem-$platform$ext"
+              [ -f "$asset" ] || { echo "missing asset: $asset"; exit 1; }
+              echo "$sum  $asset" | sha256sum -c -
+            done < "$sums"
+          done
+
+      - name: Sign each asset
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          for f in _assets/*; do
+            case "$f" in *.cosign.bundle) continue ;; esac
+            cosign sign-blob --yes "$f" --bundle "$f.cosign.bundle"
+          done
+          ls -l _assets
+
+      - name: Attach the signatures to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          gh release upload "$TAG" _assets/*.cosign.bundle --clobber --repo "$GITHUB_REPOSITORY"

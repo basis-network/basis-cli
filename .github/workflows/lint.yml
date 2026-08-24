@@ -1,0 +1,65 @@
+# SPDX-FileCopyrightText: 2026 BASE COMPUTING S.A.S.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Static analysis. Everything in this repository is shell and metadata, so
+# "the tests" are: does the script hold up, and is every file licensed.
+#
+# Actions are pinned to a commit SHA, not a tag. A tag is mutable: whoever can
+# move it can change what runs here.
+name: lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Least privilege by default; no job below asks for more.
+permissions: read-all
+
+jobs:
+  shellcheck:
+    name: shellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - name: Run shellcheck
+        run: |
+          shellcheck --version
+          shellcheck download.sh
+
+  reuse:
+    name: REUSE compliance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: fsfe/reuse-action@bb774aa972c2a89ff34781233d275075cbddf542 # v5
+
+  checksums:
+    name: checksum files are well formed
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - name: Every checksum parses and names a file we publish
+        run: |
+          set -euo pipefail
+          fail=0
+          for f in checksums/*/*.sha256; do
+            while read -r sum name; do
+              case "$sum" in
+                [0-9a-f]*) [ ${#sum} -eq 64 ] || { echo "$f: not a sha256: $sum"; fail=1; } ;;
+                *) echo "$f: malformed line: $sum $name"; fail=1 ;;
+              esac
+              case "$name" in
+                basis|basis.exe) ;;
+                *) echo "$f: unexpected file name: $name"; fail=1 ;;
+              esac
+            done < "$f"
+          done
+          exit $fail

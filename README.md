@@ -1,116 +1,153 @@
-# basis-cli
+# Basis CLI
 
-El cliente de línea de comandos de Basis Network: crea carteras, consulta la
-cadena, transfiere LITHOS y despliega contratos. Es **la única herramienta que
-hoy sabe firmar** para esta red, porque Basis firma con ML-DSA-65 (FIPS 204) y
-ninguna cartera de Ethereum puede hacerlo.
+[![lint](https://github.com/basis-network/basis-cli/actions/workflows/lint.yml/badge.svg)](https://github.com/basis-network/basis-cli/actions/workflows/lint.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/basis-network/basis-cli/badge)](https://scorecard.dev/viewer/?uri=github.com/basis-network/basis-cli)
+[![REUSE status](https://api.reuse.software/badge/github.com/basis-network/basis-cli)](https://api.reuse.software/info/github.com/basis-network/basis-cli)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](./LICENSE)
 
-Esta carpeta tiene dos mitades y hace falta entender por qué:
+The command-line client for [Basis Network](https://basisnetwork.com.co):
+create wallets, query the chain, transfer LITHOS and deploy contracts.
 
-| Carpeta | Qué guarda | Estado |
-|---|---|---|
-| [`bin/`](./bin) | Los `SHA256SUMS` por plataforma | Los ejecutables se descargan — ver abajo |
-| [`src/`](./src) | El código fuente (`basis-core`) | **Vacío** — ver `src/README.md` |
+It is **the only tool that can currently sign for this network.** Basis signs
+with ML-DSA-65 (FIPS 204, post-quantum), so no Ethereum wallet can produce a
+valid transaction for it — the signature scheme is different, not just the
+curve.
+
+> The network is a **development network**. Nothing here is production, LITHOS
+> has no value, and the chain may be reset without notice.
 
 ---
 
-## Los binarios
-
-Los ejecutables **no están en este repositorio**: son 52 MB por versión y git
-no olvida, así que diez versiones serían medio giga de historia y sacarlos
-después obligaría a reescribirla. Viven en un bucket de Cloud Storage:
-
-```
-gs://basis-releases/cli/2026-08-20/
-├── linux-x86_64/     basis · basis-node · SHA256SUMS
-└── windows-x86_64/   basis.exe · basis-node.exe · SHA256SUMS
-```
-
-Lo que **sí** está versionado aquí son los `SHA256SUMS`. Esa es toda la idea:
-la suma viaja por un canal que se revisa —commits, revisiones, historia— y el
-binario por otro. Si alguien altera lo que hay en el bucket, `sha256sum -c`
-contra la copia de este repositorio lo delata.
+## Install
 
 ```bash
-./descargar.sh linux-x86_64      # baja y verifica en un paso
+git clone https://github.com/basis-network/basis-cli.git
+cd basis-cli
+./download.sh                    # linux-x86_64
+./download.sh windows-x86_64
 ```
 
-o a mano:
+The script downloads the binary and verifies it before handing it to you. It
+refuses to continue if it cannot verify.
+
+By hand, if you prefer:
 
 ```bash
-gcloud storage cp -r gs://basis-releases/cli/2026-08-20/linux-x86_64 bin/
-cd bin/linux-x86_64 && sha256sum -c SHA256SUMS
+VERSION=v0.1.0
+curl -fSLO "https://github.com/basis-network/basis-cli/releases/download/$VERSION/basis-linux-x86_64"
+mv basis-linux-x86_64 basis
+sha256sum -c checksums/$VERSION/linux-x86_64.sha256
+chmod +x basis
 ```
 
-El bucket es privado: hace falta acceso al proyecto `basis-devnet`. Publicarlo
-es una decisión aparte, y la red todavía no está lanzada.
+Release assets carry the platform in their name because a release is one flat
+namespace; the checksum files list the bare name you end up with.
 
-**Linux** — compilados por el equipo el 2026-08-20 desde `basis-core` `f74b78e`
-con `rustc` 1.96.1, dentro de `rust:1.96-bookworm` (Debian 12, glibc 2.36) para
-que corran tal cual en la imagen `debian-12` de Compute Engine. Enlazan
-únicamente `libc`, `libm` y `libgcc_s`: ningún `libssl`, porque el workspace pasó
-a rustls. Es la pareja que corre hoy en la devnet.
+## Why this repository exists
 
-**Windows** — vienen del `basis-network-pilot-kit`. Son builds de prueba; el
-objetivo de producción es Linux. No hay constancia de con qué commit se
-compilaron.
+The binaries are not in it. They are megabytes each and git never forgets: ten
+releases would live in every clone forever, and taking them out afterwards
+means rewriting history. They are attached to
+[GitHub releases](https://github.com/basis-network/basis-cli/releases) instead,
+which keeps them out of the tree.
 
-**No hay binario de macOS.** Es el hueco más visible para terceros: medio equipo
-de cualquier empresa trabaja ahí.
+What *is* in here is `checksums/`, and that is the point:
 
-## Qué hace
+**The binary travels through the release. The checksum travels through git** —
+where it has a commit, an author, a date and a diff anybody can read. Checking
+one against the other is what makes keeping them apart safe. A checksum stored
+next to the file it describes proves nothing: whoever can replace one can
+replace the other.
 
-```
-basis wallet new|import          Cartera ML-DSA-65 (keystore cifrado)
-basis validator-key new|import   Claves de validador
-basis balance|nonce|block        Consultas de estado
-basis tx-receipt                 Recibo de una transacción
-basis send tx                    Transferir, llamar un contrato o desplegarlo
-```
+That is also why `download.sh` never downloads the checksum, and why
+[the release workflow](./.github/workflows/release.yml) verifies every
+published asset against the committed checksums before signing it.
 
-El endpoint se pasa con `--rpc-url` o con la variable `BASIS_RPC_URL`.
+## Where the source is
 
-## Cosas verificadas que conviene saber antes de usarlo
+Not here. The CLI is built from `basis-core`, the node workspace, which is not
+public yet. This repository distributes the compiled tool and documents it. See
+[CONTRIBUTING.md](./CONTRIBUTING.md) for what that means for patches.
 
-Todo lo de abajo está medido contra la devnet, no supuesto.
-
-**Las consultas piden 20 bytes; las cuentas tienen 32.** Una cuenta de Basis es
-`BLAKE3(clave pública ML-DSA-65)`, 32 bytes, y es lo que imprime `wallet new`.
-Pero `balance`, `nonce` y `tx-receipt` exigen 40 caracteres hex y hay que pasarles
-los **últimos** 20 bytes de esa identidad:
+## Commands
 
 ```
-identidad   0x0ad5fa7d057384f38e4b3c81f68af934d5547d6e2214f44d56dc0077aec217f6
-para balance            0xf68af934d5547d6e2214f44d56dc0077aec217f6
+basis wallet new|import          ML-DSA-65 wallet (encrypted keystore)
+basis validator-key new|import   Validator keys
+basis balance|nonce|block        State queries
+basis tx-receipt                 Transaction receipt
+basis send tx                    Transfer, call a contract, or deploy one
 ```
 
-Con los primeros 20 no da error: responde `balance 0`, que parece una cuenta
-vacía. `--to` de `send tx` sí acepta la forma completa de 32 bytes.
+The endpoint goes in `--rpc-url` or in the `BASIS_RPC_URL` environment
+variable. The public devnet endpoint and how to get a token are documented at
+[basisnetwork.com.co/docs](https://basisnetwork.com.co/docs).
 
-**Imprime las unidades mal.** Muestra `4985159985308 wei (0.000005
-eth-equivalent)`: la unidad es el **tomo**, la moneda es **LITHOS**, y
-1 LITHOS = 10⁹ tomos (no 10¹⁸, que es lo que el CLI supone al dividir).
+## Things worth knowing before you use it
 
-**No sabe enviar cabeceras HTTP.** No hay `--rpc-token` ni forma de mandar
-`Authorization: Bearer`, y de ahí que el acceso de terceros pase por un gateway
-que lleva el token en la ruta (`/rpc/<token>`).
+Everything below is measured against the running devnet, not assumed. These are
+rough edges of this build, and they are written down because each one costs an
+afternoon to find on your own.
 
-**Lleva sus propias raíces TLS.** Usa rustls con raíces empotradas y no lee el
-almacén de certificados del sistema: `SSL_CERT_FILE` no le afecta y no acepta
-`--cacert` ni `--insecure`. Detrás de una inspección TLS corporativa —un
-FortiGate, un Zscaler— falla todo HTTPS con `send: error sending request`. El
-rodeo es un proxy local en HTTP que reenvíe al nodo.
+### Queries want 20 bytes; accounts are 32
 
-## Formato de transacción
+A Basis account is `BLAKE3(ML-DSA-65 public key)` — 32 bytes, and that is what
+`wallet new` prints. But `balance`, `nonce` and `tx-receipt` want 40 hex
+characters, and you must give them the **last** 20 bytes of that identity:
 
-El CLI firma con ML-DSA-65 y envía por `eth_sendRawTransaction`. La serialización
-está documentada byte a byte en
-[`../wallet/docs/FORMATO-TRANSACCION.md`](../wallet/docs/FORMATO-TRANSACCION.md),
-deducida por captura y validada contra el decodificador del nodo.
+```
+identity      0x0ad5fa7d057384f38e4b3c81f68af934d5547d6e2214f44d56dc0077aec217f6
+for balance                             0xf68af934d5547d6e2214f44d56dc0077aec217f6
+```
 
-## De dónde salieron estas copias
+Passing the **first** 20 bytes does not error. It answers `balance 0`, which
+reads exactly like an empty account. `--to` on `send tx` does take the full
+32-byte form.
 
-Se copiaron, no se movieron: `basis-linux-devnet-2026-08-20/bin/` y
-`basis-network-pilot-kit/bin/` siguen intactos porque son entregas fechadas y el
-pilot kit no funciona sin los suyos. Esta carpeta es el sitio **canónico** al que
-apuntar de ahora en adelante.
+### It prints the wrong units
+
+It shows `4985159985308 wei (0.000005 eth-equivalent)`. The unit is the
+**tomo**, the currency is **LITHOS**, and 1 LITHOS = 10⁹ tomos — not the 10¹⁸
+the CLI assumes when it divides. The raw number is right; the conversion and
+the names are not.
+
+### It cannot send HTTP headers
+
+There is no `--rpc-token` and no way to set `Authorization: Bearer`. That is why
+third-party RPC access carries the token in the path instead.
+
+### It carries its own TLS roots
+
+It uses rustls with embedded roots and does not read the system certificate
+store. `SSL_CERT_FILE` has no effect, and there is no `--cacert` or
+`--insecure`. Behind corporate TLS inspection — a FortiGate, a Zscaler — every
+HTTPS call fails with `send: error sending request`. The way around it is a
+local HTTP proxy that forwards to the node.
+
+## Builds
+
+| Platform | Provenance |
+|---|---|
+| `linux-x86_64` | Built from `basis-core` `f74b78e` with `rustc` 1.96.1 inside `rust:1.96-bookworm` (Debian 12, glibc 2.36). Links only `libc`, `libm` and `libgcc_s` — no `libssl`, the workspace uses rustls. This is the build running on the devnet. |
+| `windows-x86_64` | An earlier build. Not reproducible: the commit it came from was not recorded. It works, and it is shipped as-is. |
+
+**There is no macOS build.** It is the most visible gap for anyone outside the
+team, and it is on the list.
+
+## Project
+
+| | |
+|---|---|
+| [CONTRIBUTING.md](./CONTRIBUTING.md) | what is accepted here, and the DCO sign-off |
+| [SECURITY.md](./SECURITY.md) | reporting a vulnerability, verifying a download |
+| [SUPPORT.md](./SUPPORT.md) | where to ask what |
+| [GOVERNANCE.md](./GOVERNANCE.md) | who decides, and how |
+| [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md) | Contributor Covenant 2.1 |
+| [CHANGELOG.md](./CHANGELOG.md) | what changed, and what it means |
+
+This repository is [REUSE](https://reuse.software/) compliant: every file
+carries its copyright and licence, checked in CI.
+
+## License
+
+[Apache License 2.0](./LICENSE). Copyright 2026 BASE COMPUTING S.A.S.
