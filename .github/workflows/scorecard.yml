@@ -11,6 +11,9 @@ on:
     - cron: '32 5 * * 1'
   push:
     branches: [main]
+  # Some checks read the published release, not the tree, so a re-analysis is
+  # sometimes needed without a commit to trigger it.
+  workflow_dispatch:
 
 permissions: read-all
 
