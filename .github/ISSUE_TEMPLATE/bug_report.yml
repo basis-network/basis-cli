@@ -1,0 +1,43 @@
+name: Bug report
+description: Something the CLI does that it should not
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before filing: four known rough edges account for most surprises, and
+        they are documented in the README under **Things worth knowing**. The
+        checkboxes below rule them out in ten seconds.
+
+        **Never report a security vulnerability here.** Email
+        contact@basisnetwork.com.co.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The release you downloaded, e.g. v0.1.0
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options: [linux-x86_64, windows-x86_64, other]
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What you ran and what happened
+      description: The command, the output, and what you expected instead.
+      render: shell
+    validations:
+      required: true
+  - type: checkboxes
+    id: known
+    attributes:
+      label: Ruled out
+      options:
+        - label: I passed the LAST 20 bytes of the account to `balance`/`nonce`/`tx-receipt` (the first 20 answer `balance 0` instead of failing)
+        - label: This is not the units display (the unit is the tomo, 1 LITHOS = 10⁹ tomos)
+        - label: I am not behind corporate TLS inspection (the CLI carries its own TLS roots and cannot be pointed at another CA)

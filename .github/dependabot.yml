@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 BASE COMPUTING S.A.S.
+# SPDX-License-Identifier: Apache-2.0
+#
+# This repository ships no code dependencies -- it is shell and metadata. What
+# it does depend on is the set of GitHub Actions the workflows call, which are
+# pinned to commit SHAs. Pinned means safe, not current: without something
+# watching them, a pinned action quietly rots. This is that something.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(actions)"

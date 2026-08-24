@@ -1,16 +1,22 @@
-# ---------------------------------------------------------------------------
-# Los ejecutables NO se versionan.
-#
-# Son 52 MB por version y git no olvida: diez versiones son medio giga en la
-# historia, y sacarlos despues obliga a reescribirla. Viven en el bucket de
-# descargas; lo que si se versiona es `SHA256SUMS`, con lo que la integridad
-# de lo que te bajes se puede comprobar contra este repositorio.
-# ---------------------------------------------------------------------------
-bin/*/basis
-bin/*/basis-node
-bin/*/*.exe
+# SPDX-FileCopyrightText: 2026 BASE COMPUTING S.A.S.
+# SPDX-License-Identifier: Apache-2.0
 
-# Ruido del sistema y del editor
+# ---------------------------------------------------------------------------
+# The executables are NOT versioned.
+#
+# They are megabytes each and git never forgets: ten releases would live in
+# every clone forever, and removing them afterwards means rewriting history.
+# They are served from a storage bucket instead.
+#
+# What IS versioned is `checksums/`, so the integrity of whatever you download
+# can be checked against this repository. That split is the point -- see the
+# README.
+#
+# `download.sh` writes here.
+# ---------------------------------------------------------------------------
+bin/
+
+# System and editor noise
 .DS_Store
 Thumbs.db
 *.swp
