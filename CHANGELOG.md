@@ -10,8 +10,21 @@ number, only the date they were copied.
   [v0.1.0 release](https://github.com/basis-network/basis-cli/releases/tag/v0.1.0).
 - `checksums/v0.1.0/` holds the SHA-256 of each binary. Verified with
   `download.sh`, which never downloads the checksum.
-- This release is **not signed**: it predates the signing workflow. Releases
-  from v0.1.1 onwards are signed with cosign in keyless mode.
+- Assets are signed with cosign in keyless mode by the release workflow, which
+  first verifies each one against `checksums/v0.1.0/`. Verify with:
+
+  ```bash
+  cosign verify-blob basis-linux-x86_64 \
+    --bundle basis-linux-x86_64.cosign.bundle \
+    --certificate-identity-regexp \
+      'https://github.com/basis-network/basis-cli/.github/workflows/release.yml@.*' \
+    --certificate-oidc-issuer https://token.actions.githubusercontent.com
+  ```
+
+  *(The annotated git tag for v0.1.0 says this release is unsigned. It was
+  written minutes before the workflow ran and proved otherwise. The tag is left
+  where it is rather than moved: a published tag that shifts under people is a
+  worse problem than a stale sentence in its message.)*
 
 ### `basis-node` is no longer distributed here
 

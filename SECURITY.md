@@ -64,10 +64,9 @@ cosign verify-blob basis-linux-x86_64 \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
 ```
 
-**v0.1.0 is not signed.** It was published before that workflow existed, and
-signing it after the fact from a laptop would produce a signature that attests
-to nothing useful. Verify it with the checksum. Releases from v0.1.1 onwards
-are signed.
+This includes v0.1.0. The signature is not a promise about the binary's
+history — it attests that these exact bytes were the ones this workflow
+published, after checking them against the checksums committed here.
 
 ## Keys and keystores
 
