@@ -5,16 +5,16 @@ than saying so.
 
 ## Who decides
 
-**Sebastián Quintero** ([@sebastian-quintero-osorio](https://github.com/sebastian-quintero-osorio))
+**Sebastian Tobar Quintero** ([@sebastian-quintero-osorio](https://github.com/sebastian-quintero-osorio))
 is the lead maintainer and has final say on what is merged, released and
 documented here. He is also the security contact and the person responsible for
 licence compliance.
 
-**David Aquiles** ([@DavidAquiles](https://github.com/DavidAquiles)) is the
-second maintainer, with the same access: owner of the organisation, able to
-merge and able to publish a release. That is the whole point of the role — the
-project does not stop, and nothing becomes unreachable, if one person is not
-available.
+**David Alejandro Blandón Román**
+([@DavidAquiles](https://github.com/DavidAquiles)) is the second maintainer,
+with the same access: owner of the organisation, able to merge and able to
+publish a release. That is the whole point of the role — the project does not
+stop, and nothing becomes unreachable, if one person is not available.
 
 **Two maintainers**, and it is worth being exact about what that buys and what
 it does not. It removes the single point of failure for access, for releases
