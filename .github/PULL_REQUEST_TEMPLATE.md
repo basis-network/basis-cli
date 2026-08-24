@@ -8,7 +8,8 @@
 
 ## Checklist
 
-- [ ] `shellcheck download.sh` passes
+- [ ] `make check` passes, and a change in behaviour comes with a case
+- [ ] `make lint` passes (`shellcheck`, `reuse lint`)
 - [ ] New files carry an SPDX header, or an entry in `REUSE.toml`
 - [ ] Commits are signed off (`git commit -s`) — see [CONTRIBUTING.md](../CONTRIBUTING.md)
 - [ ] If this changes what the repository vouches for (checksums, what is

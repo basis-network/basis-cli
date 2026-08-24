@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased
+
+Nothing here changes what gets downloaded or how it is verified. What changed
+is that the verification is now checked by something other than a person
+reading the script.
+
+- `test/run.sh` — a test suite for `download.sh`, run by `make check` and by CI
+  on every pull request. Each case builds a throwaway release in a temporary
+  directory and reaches it over `file://`: no network, and no fixture
+  committed. Two of the cases are the failure paths — a tampered download and a
+  machine with nothing to hash with — because a refusal that stops working
+  fails silently.
+- `Makefile` with `check` and `lint`, so both are one word.
+- Vulnerabilities can now be reported through a
+  [private GitHub advisory](https://github.com/basis-network/basis-cli/security/advisories/new)
+  as well as by email. See [SECURITY.md](./SECURITY.md).
+
 ## v0.1.0 — 2026-08-23
 
 First tagged release. The binaries themselves are not new — they are the ones

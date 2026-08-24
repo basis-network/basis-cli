@@ -2,8 +2,14 @@
 
 ## Reporting a vulnerability
 
-Email **contact@basisnetwork.com.co** with `[security]` in the subject. Please
-do not open a public issue.
+Two private routes. Either is fine, and both reach the same people:
+
+- **[Report a vulnerability](https://github.com/basis-network/basis-cli/security/advisories/new)**
+  on GitHub. A private security advisory: visible to you and the maintainers,
+  and to nobody else until it is published.
+- **Email contact@basisnetwork.com.co** with `[security]` in the subject.
+
+Please do not open a public issue.
 
 Include what you can: what you did, what happened, what you expected, and the
 version and platform. A proof of concept helps and is never required.

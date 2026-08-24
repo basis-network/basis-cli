@@ -138,6 +138,18 @@ local HTTP proxy that forwards to the node.
 **There is no macOS build.** It is the most visible gap for anyone outside the
 team, and it is on the list.
 
+## Tests
+
+```bash
+make check
+```
+
+Each case builds a throwaway release in a temporary directory and points
+`download.sh` at it over `file://`: no network, and nothing binary in the tree —
+the fixtures are made at run time. Two of the cases are the failure paths, a
+tampered download and a machine with nothing to hash with, because refusing
+those is what this repository is for. CI runs the suite on every pull request.
+
 ## Project
 
 | | |
@@ -148,6 +160,7 @@ team, and it is on the list.
 | [GOVERNANCE.md](./GOVERNANCE.md) | who decides, and how |
 | [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md) | Contributor Covenant 2.1 |
 | [CHANGELOG.md](./CHANGELOG.md) | what changed, and what it means |
+| [test/](./test) | the suite, and what each case is guarding |
 
 This repository is [REUSE](https://reuse.software/) compliant: every file
 carries its copyright and licence, checked in CI.

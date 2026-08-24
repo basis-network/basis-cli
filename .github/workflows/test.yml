@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: 2026 Basis Network
+# SPDX-License-Identifier: Apache-2.0
+#
+# The test suite, on every push and every pull request.
+#
+# It runs `make check`, which is `test/run.sh`, which needs nothing the script
+# under test does not already need. There is no build step here because there
+# is nothing to build: the binaries come from a release, not from this tree.
+#
+# Actions are pinned to a commit SHA, not a tag. A tag is mutable: whoever can
+# move it can change what runs here.
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Least privilege by default; the job below asks for nothing more.
+permissions: read-all
+
+jobs:
+  suite:
+    name: download.sh test suite
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: make check
+        run: make check
