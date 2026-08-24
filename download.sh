@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SPDX-FileCopyrightText: 2026 BASE COMPUTING S.A.S.
+# SPDX-FileCopyrightText: 2026 Basis Network
 # SPDX-License-Identifier: Apache-2.0
 # ---------------------------------------------------------------------------
 # Downloads the Basis CLI and verifies it against the checksum kept IN THIS

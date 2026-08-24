@@ -1,7 +1,7 @@
 version = 1
 
 SPDX-PackageName = "basis-cli"
-SPDX-PackageSupplier = "BASE COMPUTING S.A.S. <contact@basisnetwork.com.co>"
+SPDX-PackageSupplier = "Basis Network <contact@basisnetwork.com.co>"
 SPDX-PackageDownloadLocation = "https://github.com/basis-network/basis-cli"
 
 # Files that carry no comment syntax, or where a header would be noise for the
@@ -17,5 +17,5 @@ path = [
   ".github/ISSUE_TEMPLATE/**",
 ]
 precedence = "aggregate"
-SPDX-FileCopyrightText = "2026 BASE COMPUTING S.A.S."
+SPDX-FileCopyrightText = "2026 Basis Network"
 SPDX-License-Identifier = "Apache-2.0"
