@@ -1,11 +1,16 @@
 # SPDX-FileCopyrightText: 2026 Basis Network
 # SPDX-License-Identifier: Apache-2.0
 #
-# The test suite, on every push and every pull request.
+# The test suite, on every push and every pull request, and what it covers.
 #
-# It runs `make check`, which is `test/run.sh`, which needs nothing the script
-# under test does not already need. There is no build step here because there
-# is nothing to build: the binaries come from a release, not from this tree.
+# `make check` is `test/run.sh`, which needs nothing the script under test does
+# not already need. There is no build step here because there is nothing to
+# build: the binaries come from a release, not from this tree.
+#
+# `make coverage` measures how much of `download.sh` the suite actually
+# reaches, and fails below the threshold in `test/coverage.sh`. It is a
+# separate job because it needs Ruby and bashcov, which the suite itself
+# deliberately does not.
 #
 # Actions are pinned to a commit SHA, not a tag. A tag is mutable: whoever can
 # move it can change what runs here.
@@ -17,7 +22,7 @@ on:
   pull_request:
     branches: [main]
 
-# Least privilege by default; the job below asks for nothing more.
+# Least privilege by default; no job below asks for more.
 permissions: read-all
 
 jobs:
@@ -30,3 +35,19 @@ jobs:
           persist-credentials: false
       - name: make check
         run: make check
+
+  coverage:
+    name: download.sh statement coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # The runner already ships Ruby, so there is no third-party setup action
+      # here: one less thing to pin, and one less thing to trust.
+      - name: Install bashcov
+        run: |
+          ruby --version
+          gem install --no-document bashcov
+      - name: make coverage
+        run: make coverage

@@ -108,6 +108,12 @@ mentions() { local w="$1" t="$2"; check "$w" "$(case "${out:-}" in *"$t"*) echo 
 
 case_() { printf '\n%s\n' "$1"; }
 
+# Each case throws its sandbox away as it ends. Measuring coverage needs them
+# to survive instead: the copy of `download.sh` inside the sandbox is the file
+# that carries the execution trace, and a file that no longer exists cannot be
+# attributed. See `test/coverage.sh`.
+cleanup() { [ -n "${BASIS_TEST_KEEP:-}" ] || rm -rf "$1"; }
+
 # --------------------------------------------------------------------------
 
 case_ 'a matching download is verified and left in place'
@@ -122,7 +128,7 @@ check 'and it is executable' \
   "$([ -x "$work/repo/bin/linux-x86_64/basis" ] && echo yes || echo no)"
 absent 'the copied checksum file does not stay behind' \
   "$work/repo/bin/linux-x86_64/.sha256.check"
-rm -rf "$work"
+cleanup "$work"
 
 case_ 'a tampered download is refused'
 work="$(sandbox)"
@@ -130,7 +136,7 @@ publish "$work" v0.1.0 linux-x86_64 basis 'not what was signed off' 'the linux b
 download "$work" linux-x86_64
 check 'exits non-zero' "$([ "$status" -ne 0 ] && echo yes || echo no)"
 mentions 'and says so' 'FAILED'
-rm -rf "$work"
+cleanup "$work"
 
 case_ 'the windows asset name is mapped, and the bare name is kept'
 work="$(sandbox)"
@@ -140,7 +146,7 @@ equal 'exits 0' "$status" 0
 exists 'basis.exe is saved under its bare name' \
   "$work/repo/bin/windows-x86_64/basis.exe"
 mentions 'and the platform was in the asset name' 'basis-windows-x86_64.exe'
-rm -rf "$work"
+cleanup "$work"
 
 case_ 'a platform this repository knows nothing about is an error, not a download'
 work="$(sandbox)"
@@ -151,7 +157,7 @@ mentions 'and says there is no checksum file' 'no checksum file'
 mentions 'and lists the versions it does know' 'v0.1.0'
 mentions 'and the platforms it does know' 'linux-x86_64'
 absent 'nothing was written' "$work/repo/bin/darwin-arm64"
-rm -rf "$work"
+cleanup "$work"
 
 case_ 'the newest version is the highest, not the last alphabetically'
 work="$(sandbox)"
@@ -162,7 +168,7 @@ equal 'exits 0' "$status" 0
 equal 'v0.10.0 beats v0.2.0' \
   "$(cat "$work/repo/bin/linux-x86_64/basis" 2>/dev/null)" 'the newer binary'
 mentions 'and it says which one it took' 'v0.10.0'
-rm -rf "$work"
+cleanup "$work"
 
 case_ 'BASIS_CLI_VERSION asks for another one'
 work="$(sandbox)"
@@ -173,7 +179,7 @@ out="$(cd "$work/repo" && BASIS_CLI_BASE_URL="file://$work/releases" \
 equal 'exits 0' "$status" 0
 equal 'and v0.2.0 is what arrives' \
   "$(cat "$work/repo/bin/linux-x86_64/basis" 2>/dev/null)" 'the older binary'
-rm -rf "$work"
+cleanup "$work"
 
 case_ 'with nothing to check the checksum with, it refuses instead of guessing'
 work="$(sandbox)"
@@ -191,7 +197,7 @@ out="$(cd "$work/repo" && PATH="$work/bin" BASIS_CLI_BASE_URL="file://$work/rele
 equal 'exits 1' "$status" 1
 mentions 'and says why' 'cannot verify'
 absent 'and nothing was downloaded' "$work/repo/bin/linux-x86_64/basis"
-rm -rf "$work"
+cleanup "$work"
 
 case_ 'without sha256sum it falls back to shasum, which is what macOS ships'
 if command -v shasum >/dev/null 2>&1; then
@@ -208,7 +214,7 @@ if command -v shasum >/dev/null 2>&1; then
     ./download.sh linux-x86_64 2>&1)"; status=$?
   equal 'exits 0' "$status" 0
   exists 'and the binary is verified and kept' "$work/repo/bin/linux-x86_64/basis"
-  rm -rf "$work"
+  cleanup "$work"
 else
   printf '  skip  no shasum on this machine\n'
 fi
@@ -221,7 +227,7 @@ download "$work" linux-x86_64
 equal 'exits 0' "$status" 0
 exists 'the first is here' "$work/repo/bin/linux-x86_64/basis"
 exists 'and so is the second' "$work/repo/bin/linux-x86_64/basis.sig"
-rm -rf "$work"
+cleanup "$work"
 
 # --------------------------------------------------------------------------
 
