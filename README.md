@@ -1,6 +1,8 @@
 # Basis CLI
 
 [![lint](https://github.com/basis-network/basis-cli/actions/workflows/lint.yml/badge.svg)](https://github.com/basis-network/basis-cli/actions/workflows/lint.yml)
+[![test](https://github.com/basis-network/basis-cli/actions/workflows/test.yml/badge.svg)](https://github.com/basis-network/basis-cli/actions/workflows/test.yml)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/14224/badge)](https://www.bestpractices.dev/projects/14224)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/basis-network/basis-cli/badge)](https://scorecard.dev/viewer/?uri=github.com/basis-network/basis-cli)
 [![REUSE status](https://api.reuse.software/badge/github.com/basis-network/basis-cli)](https://api.reuse.software/info/github.com/basis-network/basis-cli)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](./LICENSE)
@@ -163,7 +165,12 @@ those is what this repository is for. CI runs the suite on every pull request.
 | [test/](./test) | the suite, and what each case is guarding |
 
 This repository is [REUSE](https://reuse.software/) compliant: every file
-carries its copyright and licence, checked in CI.
+carries its copyright and licence, checked in CI. It also carries the OpenSSF
+[Best Practices](https://www.bestpractices.dev/projects/14224) passing badge —
+a self-assessment against 67 criteria, each answered in public with its
+reasoning. Worth knowing what it covers: this repository, which is the
+distribution and verification tooling, not the compiled binary whose source
+lives in `basis-core`. The entry says so itself.
 
 ## License
 
