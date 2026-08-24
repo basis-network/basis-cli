@@ -1,8 +1,9 @@
 # SPDX-FileCopyrightText: 2026 Basis Network
 # SPDX-License-Identifier: Apache-2.0
 #
-# Static analysis. Everything in this repository is shell and metadata, so
-# "the tests" are: does the script hold up, and is every file licensed.
+# Static analysis: does the script hold up, and is every file licensed. What
+# `download.sh` actually *does* is checked separately, by the suite that
+# `test.yml` runs.
 #
 # Actions are pinned to a commit SHA, not a tag. A tag is mutable: whoever can
 # move it can change what runs here.
