@@ -154,4 +154,4 @@ carries its copyright and licence, checked in CI.
 
 ## License
 
-[Apache License 2.0](./LICENSE). Copyright 2026 BASE COMPUTING S.A.S.
+[Apache License 2.0](./LICENSE). Copyright 2026 Basis Network
