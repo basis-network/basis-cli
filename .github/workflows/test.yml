@@ -44,10 +44,14 @@ jobs:
         with:
           persist-credentials: false
       # The runner already ships Ruby, so there is no third-party setup action
-      # here: one less thing to pin, and one less thing to trust.
+      # here: one less thing to pin, and one less thing to trust. The gem goes
+      # to the user's directory because the runner's system gem directory is
+      # not writable without sudo, and a coverage job has no business asking
+      # for root.
       - name: Install bashcov
         run: |
           ruby --version
-          gem install --no-document bashcov
+          gem install --no-document --user-install bashcov
+          echo "$(ruby -e 'puts Gem.user_dir')/bin" >> "$GITHUB_PATH"
       - name: make coverage
         run: make coverage
