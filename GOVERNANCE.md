@@ -30,7 +30,7 @@ being promised and skipped.
 |---|---|---|
 | **Lead maintainer** | Sebastian Tobar Quintero | Final say on what is merged, released and documented. Breaking ties. Keeping this document true |
 | **Maintainer** | Sebastian Tobar Quintero, David Alejandro Blandón Román | Reviewing and merging pull requests; committing `checksums/<tag>/` before a release is published; publishing releases; triaging issues |
-| **Security contact** | Sebastian Tobar Quintero | Reading the private advisory queue and `contact@basisnetwork.com.co`; acknowledging within 3 working days; running the process in [SECURITY.md](./SECURITY.md#reporting-a-vulnerability) to disclosure |
+| **Security contact** | Sebastian Tobar Quintero | Reading the private advisory queue and `security@basisnetwork.com.co`; acknowledging within 3 working days; running the process in [SECURITY.md](./SECURITY.md#reporting-a-vulnerability) to disclosure |
 | **Licence compliance** | Sebastian Tobar Quintero | That every file carries its copyright and licence, and that `reuse lint` stays green |
 | **Organisation owner** | Sebastian Tobar Quintero, David Alejandro Blandón Román | Access to the GitHub organisation, its settings and its secrets. Either can restore the other's access |
 | **Release signing** | *nobody* | Deliberately: signing is keyless, performed by `release.yml` under its own OIDC identity. There is no key for a person to hold, lose, or be coerced into using |

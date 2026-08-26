@@ -7,7 +7,7 @@ Two private routes. Either is fine, and both reach the same people:
 - **[Report a vulnerability](https://github.com/basis-network/basis-cli/security/advisories/new)**
   on GitHub. A private security advisory: visible to you and the maintainers,
   and to nobody else until it is published.
-- **Email contact@basisnetwork.com.co** with `[security]` in the subject.
+- **Email security@basisnetwork.com.co** with `[security]` in the subject.
 
 Please do not open a public issue.
 

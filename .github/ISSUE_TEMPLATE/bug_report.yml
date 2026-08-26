@@ -10,7 +10,7 @@ body:
         checkboxes below rule them out in ten seconds.
 
         **Never report a security vulnerability here.** Email
-        contact@basisnetwork.com.co.
+        security@basisnetwork.com.co.
   - type: input
     id: version
     attributes:

@@ -2,7 +2,7 @@ blank_issues_enabled: false
 contact_links:
   - name: Security vulnerability
     url: https://github.com/basis-network/basis-cli/security/policy
-    about: Do NOT open a public issue. Email contact@basisnetwork.com.co instead.
+    about: Do NOT open a public issue. Email security@basisnetwork.com.co instead.
   - name: Network, endpoints and tokens
     url: https://basisnetwork.com.co/docs
     about: How to reach the devnet, get a token, and what the chain parameters are.
