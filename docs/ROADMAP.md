@@ -1,7 +1,7 @@
 # Roadmap
 
 What this project intends to do, and what it intends not to do. Reviewed when
-something on it moves; last reviewed **2026-08-24**.
+something on it moves; last reviewed **2026-09-06**.
 
 A roadmap is not a promise. It is here so that someone deciding whether to
 depend on this tool can see where it is going before they find out the hard
@@ -20,9 +20,10 @@ the second we can only report.
 |---|---|---|
 | 1 | **A macOS build in the release matrix** | The most visible gap. `download.sh` already handles `shasum`, so the client side is ready; what is missing is a published asset. Blocked on a build host, not on design. |
 | 2 | **Signed version tags** | Assets are signed today; the tags they come from are not. Closes the gap between "this binary was published by our workflow" and "this tag is the one the maintainers made". |
-| 3 | **Recording provenance for every platform** | The Linux build names its source commit and toolchain; the Windows one does not, because it predates the practice. No new asset ships without it. |
-| 4 | **Branch coverage, if a FLOSS tool for shell appears** | Statement coverage is measured and enforced at 90%. Nothing measures branch coverage for bash today; if that changes, it goes in CI the same way. |
-| 5 | **Keeping the four documented rough edges accurate** | They are in the README because they cost an afternoon each. As `basis-core` fixes them, they move to CHANGELOG and out of the README — not silently. |
+| 3 | **Narrow the published signing identity to release tags** | The verification command in SECURITY.md accepts `release.yml@.*`, any ref, because v0.1.0 was re-signed by hand from `main` on 2026-08-24 and its signatures carry `refs/heads/main`. Once a release is signed by the `release: published` run and left alone, the identity narrows to `refs/tags/v.*`, and a signature made from a branch stops verifying. |
+| 4 | **Recording provenance for every platform** | The Linux build names its source commit and toolchain; the Windows one does not, because it predates the practice. No new asset ships without it. |
+| 5 | **Branch coverage, if a FLOSS tool for shell appears** | Statement coverage is measured and enforced at 90%. Nothing measures branch coverage for bash today; if that changes, it goes in CI the same way. |
+| 6 | **Keeping the four documented rough edges accurate** | They are in the README because they cost an afternoon each. As `basis-core` fixes them, they move to CHANGELOG and out of the README — not silently. |
 
 ## Next twelve months — reported, not scheduled
 
