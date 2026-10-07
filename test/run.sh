@@ -109,6 +109,11 @@ absent() { local w="$1" f="$2"; check "$w" "$([ ! -e "$f" ] && echo yes || echo 
 # sees, so without them every call below is a syntax error on a stock Mac.
 mentions() { local w="$1" t="$2"; check "$w" "$(case "${out:-}" in (*"$t"*) echo yes ;; (*) echo no ;; esac)"; }
 
+# The hidden entries in a directory, one per line, and nothing if there are
+# none. A run that stops half-way leaves its traces here, where `ls` would not
+# show them.
+hidden() { local f; for f in "$1"/.[!.]*; do [ ! -e "$f" ] || printf '%s\n' "${f##*/}"; done; }
+
 case_() { printf '\n%s\n' "$1"; }
 
 # Each case throws its sandbox away as it ends. Measuring coverage needs them
@@ -131,6 +136,8 @@ check 'and it is executable' \
   "$([ -x "$work/repo/bin/linux-x86_64/basis" ] && echo yes || echo no)"
 absent 'the copied checksum file does not stay behind' \
   "$work/repo/bin/linux-x86_64/.sha256.check"
+equal 'and neither does anything else the run used' \
+  "$(hidden "$work/repo/bin/linux-x86_64")" ''
 cleanup "$work"
 
 case_ 'a tampered download is refused'
@@ -139,6 +146,50 @@ publish "$work" v0.1.0 linux-x86_64 basis 'not what was signed off' 'the linux b
 download "$work" linux-x86_64
 check 'exits non-zero' "$([ "$status" -ne 0 ] && echo yes || echo no)"
 mentions 'and says so' 'FAILED'
+absent 'and keeps none of what it downloaded' "$work/repo/bin/linux-x86_64/basis"
+equal 'not even half-way' "$(hidden "$work/repo/bin/linux-x86_64")" ''
+cleanup "$work"
+
+# The case above starts from an empty bin/. This one starts from a binary that
+# was verified on an earlier run, which is what an upgrade looks like -- and a
+# download that fails must not be able to replace it.
+case_ 'a download that fails verification leaves the binary already there alone'
+work="$(sandbox)"
+publish "$work" v0.1.0 linux-x86_64 basis 'the v0.1.0 binary'
+download "$work" linux-x86_64
+equal 'v0.1.0 is verified and kept' "$status" 0
+publish "$work" v0.2.0 linux-x86_64 basis 'not what was signed off' 'the v0.2.0 binary'
+download "$work" linux-x86_64
+check 'v0.2.0 is refused' "$([ "$status" -ne 0 ] && echo yes || echo no)"
+equal 'and the binary is still the verified v0.1.0' \
+  "$(cat "$work/repo/bin/linux-x86_64/basis" 2>/dev/null)" 'the v0.1.0 binary'
+equal 'with nothing left beside it' "$(hidden "$work/repo/bin/linux-x86_64")" ''
+cleanup "$work"
+
+case_ 'an upgrade that does verify replaces the binary'
+work="$(sandbox)"
+publish "$work" v0.1.0 linux-x86_64 basis 'the v0.1.0 binary'
+download "$work" linux-x86_64
+publish "$work" v0.2.0 linux-x86_64 basis 'the v0.2.0 binary'
+download "$work" linux-x86_64
+equal 'exits 0' "$status" 0
+equal 'and v0.2.0 is what is there now' \
+  "$(cat "$work/repo/bin/linux-x86_64/basis" 2>/dev/null)" 'the v0.2.0 binary'
+check 'and it is executable' \
+  "$([ -x "$work/repo/bin/linux-x86_64/basis" ] && echo yes || echo no)"
+cleanup "$work"
+
+# Not a mismatch this time: the asset never arrives. Before the staging
+# directory, a transfer that broke off over an existing binary left the part
+# that did arrive in its place, still executable.
+case_ 'a download that does not arrive leaves nothing behind'
+work="$(sandbox)"
+publish "$work" v0.1.0 linux-x86_64 basis 'the linux binary'
+rm "$work/releases/v0.1.0/basis-linux-x86_64"
+download "$work" linux-x86_64
+check 'exits non-zero' "$([ "$status" -ne 0 ] && echo yes || echo no)"
+absent 'and keeps nothing' "$work/repo/bin/linux-x86_64/basis"
+equal 'not even half-way' "$(hidden "$work/repo/bin/linux-x86_64")" ''
 cleanup "$work"
 
 case_ 'the windows asset name is mapped, and the bare name is kept'
@@ -211,7 +262,7 @@ else
   hash_tool=shasum
 fi
 mkdir -p "$work/bin"
-for tool in bash dirname basename sort tail mkdir cp rm chmod "$hash_tool"; do
+for tool in bash dirname basename sort tail mkdir mktemp cp mv rm chmod "$hash_tool"; do
   ln -s "$(command -v "$tool")" "$work/bin/$tool"
 done
 out="$(cd "$work/repo" && PATH="$work/bin" BASIS_CLI_BASE_URL="file://$work/releases" \
@@ -229,7 +280,7 @@ if command -v shasum >/dev/null 2>&1; then
   # everything the download itself needs, but no sha256sum. It is the only way
   # to reach that branch on a machine that has both.
   mkdir -p "$work/bin"
-  for tool in bash dirname basename sort tail curl mkdir cp rm chmod shasum; do
+  for tool in bash dirname basename sort tail curl mkdir mktemp cp mv rm chmod shasum; do
     ln -s "$(command -v "$tool")" "$work/bin/$tool"
   done
   out="$(cd "$work/repo" && PATH="$work/bin" BASIS_CLI_BASE_URL="file://$work/releases" \
@@ -249,6 +300,49 @@ download "$work" linux-x86_64
 equal 'exits 0' "$status" 0
 exists 'the first is here' "$work/repo/bin/linux-x86_64/basis"
 exists 'and so is the second' "$work/repo/bin/linux-x86_64/basis.sig"
+cleanup "$work"
+
+case_ 'one tampered entry keeps the whole set out'
+work="$(sandbox)"
+publish "$work" v0.1.0 linux-x86_64 basis 'the binary'
+publish "$work" v0.1.0 linux-x86_64 basis.sig 'not what was signed off' 'the signature'
+download "$work" linux-x86_64
+check 'exits non-zero' "$([ "$status" -ne 0 ] && echo yes || echo no)"
+mentions 'and says which one' 'basis.sig: FAILED'
+absent 'and the entry that matched is not kept either' \
+  "$work/repo/bin/linux-x86_64/basis"
+equal 'nor anything half-way' "$(hidden "$work/repo/bin/linux-x86_64")" ''
+cleanup "$work"
+
+# `sha256sum -c` warns about a line it cannot parse and still exits 0 when
+# another line checks out, so each of these second entries would have been
+# fetched and never verified. A single space is the likeliest typo of the three.
+case_ 'a checksum line that is not exactly <sha256>  <name> is refused, not skipped'
+for shape in one-space not-hex hidden-name; do
+  work="$(sandbox)"
+  publish "$work" v0.1.0 linux-x86_64 basis 'the binary'
+  publish "$work" v0.1.0 linux-x86_64 basis.sig 'the signature'
+  f="$work/repo/checksums/v0.1.0/linux-x86_64.sha256"
+  case "$shape" in
+    (one-space)   sed 's/  basis\.sig$/ basis.sig/' "$f" > "$f.new" ;;
+    (not-hex)     sed 's/^[0-9a-f]\(.*  basis\.sig\)$/g\1/' "$f" > "$f.new" ;;
+    (hidden-name) sed 's/  basis\.sig$/  .basis.sig/' "$f" > "$f.new" ;;
+  esac
+  mv "$f.new" "$f"
+  download "$work" linux-x86_64
+  equal "$shape: exits 1" "$status" 1
+  mentions "$shape: and says why" 'has a line that is not'
+  absent "$shape: and keeps nothing" "$work/repo/bin/linux-x86_64/basis"
+  cleanup "$work"
+done
+
+case_ 'a checksum file that lists nothing is refused'
+work="$(sandbox)"
+mkdir -p "$work/repo/checksums/v0.1.0"
+: > "$work/repo/checksums/v0.1.0/linux-x86_64.sha256"
+download "$work" linux-x86_64
+equal 'exits 1' "$status" 1
+mentions 'and says why' 'lists nothing'
 cleanup "$work"
 
 # --------------------------------------------------------------------------

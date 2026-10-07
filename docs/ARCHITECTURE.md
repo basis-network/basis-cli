@@ -17,7 +17,7 @@ exists so that **no single party controls both**.
 
 | Component | What it is | What it is responsible for |
 |---|---|---|
-| `download.sh` | ~110 lines of bash, no dependencies beyond `curl` and a SHA-256 tool | Fetch an asset, verify it against the committed checksum, refuse if it cannot |
+| `download.sh` | ~150 lines of bash, no dependencies beyond `curl` and a SHA-256 tool | Fetch an asset, verify it against the committed checksum, refuse if it cannot |
 | `checksums/<tag>/<platform>.sha256` | Plain text, committed to git | The trust anchor. Each line is a digest and the bare file name it belongs to |
 | `.github/workflows/release.yml` | Runs when a release is **published** | Verify every published asset against `checksums/`, then sign it with cosign |
 | `.github/workflows/test.yml` | Runs on push and pull request | Run the suite on Linux, and on macOS with only what macOS ships; measure statement coverage of `download.sh` |
@@ -59,8 +59,10 @@ Five properties of that flow are load-bearing, and each has a test:
 1. **The checksum is never fetched.** It is read from the working tree. A
    checksum downloaded alongside the binary would be a mirror of whatever the
    release happens to serve, and would prove nothing.
-2. **Verification precedes use.** The file is written, checked, and only then
-   made executable. A mismatch exits non-zero and says `FAILED`.
+2. **Verification precedes use.** Files are written to a staging directory
+   inside `bin/<platform>/`, checked there, and only then made executable and
+   moved into place. A mismatch exits non-zero, says `FAILED`, and leaves what
+   was already there as it was.
 3. **No verifier means no download.** If neither `sha256sum` nor `shasum`
    exists, the script exits before touching the network rather than fetching
    something it cannot check.

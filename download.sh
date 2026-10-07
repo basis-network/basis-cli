@@ -15,7 +15,9 @@
 # makes keeping them apart safe. The checksum is NEVER downloaded -- doing so
 # would turn the check into a mirror of whatever the release happens to serve.
 #
-# If the verification fails, DO NOT run what you downloaded.
+# If the verification fails, or the run is cut short, nothing it downloaded is
+# put where the binary goes, and whatever was in `bin/<platform>/` is left as
+# it was.
 # ---------------------------------------------------------------------------
 set -euo pipefail
 
@@ -82,11 +84,42 @@ if ! command -v curl >/dev/null 2>&1; then
 fi
 
 dest="$here/bin/$PLATFORM"
+
+# Everything is fetched and checked in a staging directory inside `dest`, and
+# moved out of it only once all of it has passed. Fetching straight into `dest`
+# would overwrite a binary verified on an earlier run before the new one had
+# been checked -- and an overwritten file keeps its mode, so a download that
+# failed, or broke off half-way, would be left in its place, executable, under
+# the name people run. Inside `dest`, wherever it really lives, so that the
+# final move is a rename within one directory and never a copy across
+# filesystems that could stop half-way.
 mkdir -p "$dest"
+stage="$(mktemp -d "$dest/.stage.XXXXXX")"
+# A function rather than a string: bashcov charges a trap string to whichever
+# line the script happens to exit on, and those lines would count as covered.
+# `|| true` so that a cleanup that fails cannot change the run's exit status.
+unstage() { rm -rf "$stage" || true; }
+trap unstage EXIT
 
 echo "==> downloading $VERSION for $PLATFORM"
-while read -r _ name; do
-  [ -n "$name" ] || continue
+listed=0
+while IFS= read -r line; do
+  [ -n "$line" ] || continue
+  # `sha256sum -c` only warns about a line it cannot parse, and still exits 0
+  # when another line checks out -- so a malformed entry would be fetched and
+  # never verified. Each line has to be exactly `<64 hex digits>  <name>`, the
+  # name a plain file name, before anything is fetched for it.
+  sum="${line%%  *}"
+  name="${line#*  }"
+  case "$sum" in (*[!0-9a-f]*) sum="" ;; esac
+  case "$name" in (.*|*/*) name="" ;; esac
+  if [ "${#sum}" -ne 64 ] || [ -z "$name" ] || [ "$line" != "$sum  $name" ]; then
+    echo "  x checksums/$VERSION/$PLATFORM.sha256 has a line that is not" \
+      "'<sha256>  <name>' -- cannot verify, refusing to continue" >&2
+    exit 1
+  fi
+  listed=$((listed + 1))
+
   # Release assets live in one flat namespace, so they carry the platform in
   # their name: `basis` is published as `basis-linux-x86_64`, and `basis.exe`
   # as `basis-windows-x86_64.exe`. They are saved back under the bare name,
@@ -96,17 +129,25 @@ while read -r _ name; do
   asset="$stem-$PLATFORM$ext"
 
   echo "    $asset -> $name"
-  curl -fSL --retry 3 --retry-delay 2 -o "$dest/$name" "$BASE_URL/$VERSION/$asset"
+  curl -fSL --retry 3 --retry-delay 2 -o "$stage/$name" "$BASE_URL/$VERSION/$asset"
 done < "$sums"
+
+[ "$listed" -gt 0 ] || {
+  echo "  x checksums/$VERSION/$PLATFORM.sha256 lists nothing -- refusing to continue" >&2
+  exit 1
+}
 
 echo "==> verifying against checksums/$VERSION/$PLATFORM.sha256"
 # Read from the repository and only *copied* next to the binary, because the
 # format carries bare file names and `-c` resolves them from the cwd.
-cp "$sums" "$dest/.sha256.check"
-( cd "$dest" && check .sha256.check )
-rm -f "$dest/.sha256.check"
+cp "$sums" "$stage/.sha256.check"
+# `|| exit` rather than trusting `set -e`: a bash 3.2 built from GNU sources
+# carries on after a ( subshell ) fails, and this is the line that must stop.
+( cd "$stage" && check .sha256.check ) || exit $?
+rm -f "$stage/.sha256.check"
 
-chmod +x "$dest"/basis 2>/dev/null || true
+chmod +x "$stage"/basis 2>/dev/null || true
+mv -f "$stage"/* "$dest"/
 echo "  ok  $dest"
 echo
 echo "Try it:  $dest/basis --help"
