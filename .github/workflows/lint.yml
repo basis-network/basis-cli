@@ -1,9 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Basis Network
 # SPDX-License-Identifier: Apache-2.0
 #
-# Static analysis: does the script hold up, and is every file licensed. What
+# Static analysis: do the scripts hold up, and is every file licensed. What
 # `download.sh` actually *does* is checked separately, by the suite that
-# `test.yml` runs.
+# `test.yml` runs -- which is why the suite and the coverage script are
+# shellchecked here too: a quoting bug in a test can make it pass for the
+# wrong reason.
 #
 # Actions are pinned to a commit SHA, not a tag. A tag is mutable: whoever can
 # move it can change what runs here.
@@ -29,7 +31,7 @@ jobs:
       - name: Run shellcheck
         run: |
           shellcheck --version
-          shellcheck download.sh
+          shellcheck download.sh test/run.sh test/coverage.sh
 
   reuse:
     name: REUSE compliance

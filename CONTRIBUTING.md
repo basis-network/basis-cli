@@ -37,8 +37,8 @@ quickly.
 1. Fork, branch, and keep the change small enough to read in one sitting.
 2. `make check` must pass — it runs the test suite. CI runs it on every pull
    request.
-3. `make lint` must pass: `shellcheck` over both scripts, `reuse lint` over
-   every file.
+3. `make lint` must pass: `shellcheck` over all three scripts, `reuse lint`
+   over every file.
 4. Every new file needs an SPDX header, or an entry in `REUSE.toml` if it has
    no comment syntax. `reuse lint` tells you which.
 5. Sign off your commits (see below).

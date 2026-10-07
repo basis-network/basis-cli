@@ -165,7 +165,7 @@ than quietly skipped.
 | **CWE-494** Download of code without integrity check | **This is the weakness the repository exists to counter.** See §3 T1/T2 |
 | **CWE-347** Improper verification of signature | Verification is `sha256sum -c`, the platform tool, not a hand-rolled comparison. Release assets additionally carry a Sigstore bundle |
 | **CWE-829** Inclusion of functionality from untrusted control sphere | The checksum is never fetched; that is the whole point. `BASIS_CLI_BASE_URL` exists for the test suite and defaults to the official release URL |
-| **CWE-78** OS command injection | Every expansion is quoted; `shellcheck` runs in CI over both scripts and fails the build. The file names come from a checksum file whose format CI validates (64 hex characters, and a name that must be `basis` or `basis.exe`) |
+| **CWE-78** OS command injection | Every expansion is quoted; `shellcheck` runs in CI over all three scripts and fails the build. The file names come from a checksum file whose format CI validates (64 hex characters, and a name that must be `basis` or `basis.exe`) |
 | **CWE-22** Path traversal | Same control: `lint.yml` rejects any checksum line whose name is not one of the two expected. A `../` name never reaches the download loop |
 | **CWE-367** TOCTOU | The verified file is the file kept. Nothing is re-fetched or replaced between checking and use |
 | **CWE-improper-cleanup** | The copied checksum file is removed after verification; the suite asserts it does not stay behind |

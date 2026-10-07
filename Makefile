@@ -17,7 +17,7 @@ check:
 coverage:
 	@test/coverage.sh
 
-# Both scripts through shellcheck, and every file through reuse.
+# All three scripts through shellcheck, and every file through reuse.
 lint:
 	shellcheck download.sh test/run.sh test/coverage.sh
 	reuse lint
