@@ -14,3 +14,11 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: "chore(actions)"
+    # The codeql-action references -- init, analyze, upload-sarif -- have to
+    # move together: `analyze` refuses a configuration written by an `init` of
+    # another version. Split into one pull request each, two of the three fail
+    # their own required check, which is what happened to #6/#7 and #21/#23.
+    groups:
+      codeql-action:
+        patterns:
+          - "github/codeql-action*"
