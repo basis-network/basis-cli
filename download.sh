@@ -76,6 +76,11 @@ else
   exit 1
 fi
 
+if ! command -v curl >/dev/null 2>&1; then
+  echo "  x curl not found -- cannot download, refusing to continue" >&2
+  exit 1
+fi
+
 dest="$here/bin/$PLATFORM"
 mkdir -p "$dest"
 

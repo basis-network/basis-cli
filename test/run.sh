@@ -199,6 +199,25 @@ mentions 'and says why' 'cannot verify'
 absent 'and nothing was downloaded' "$work/repo/bin/linux-x86_64/basis"
 cleanup "$work"
 
+case_ 'without curl it refuses before downloading'
+work="$(sandbox)"
+publish "$work" v0.1.0 linux-x86_64 basis 'the linux binary'
+if command -v sha256sum >/dev/null 2>&1; then
+  hash_tool=sha256sum
+else
+  hash_tool=shasum
+fi
+mkdir -p "$work/bin"
+for tool in bash dirname basename sort tail mkdir cp rm chmod "$hash_tool"; do
+  ln -s "$(command -v "$tool")" "$work/bin/$tool"
+done
+out="$(cd "$work/repo" && PATH="$work/bin" BASIS_CLI_BASE_URL="file://$work/releases" \
+  ./download.sh linux-x86_64 2>&1)"; status=$?
+equal 'exits 1' "$status" 1
+mentions 'and says why' 'curl'
+absent 'and nothing was downloaded' "$work/repo/bin/linux-x86_64/basis"
+cleanup "$work"
+
 case_ 'without sha256sum it falls back to shasum, which is what macOS ships'
 if command -v shasum >/dev/null 2>&1; then
   work="$(sandbox)"
