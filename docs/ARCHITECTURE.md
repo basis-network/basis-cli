@@ -20,7 +20,7 @@ exists so that **no single party controls both**.
 | `download.sh` | ~110 lines of bash, no dependencies beyond `curl` and a SHA-256 tool | Fetch an asset, verify it against the committed checksum, refuse if it cannot |
 | `checksums/<tag>/<platform>.sha256` | Plain text, committed to git | The trust anchor. Each line is a digest and the bare file name it belongs to |
 | `.github/workflows/release.yml` | Runs when a release is **published** | Verify every published asset against `checksums/`, then sign it with cosign |
-| `.github/workflows/test.yml` | Runs on push and pull request | Run the suite; measure statement coverage of `download.sh` |
+| `.github/workflows/test.yml` | Runs on push and pull request | Run the suite on Linux, and on macOS with only what macOS ships; measure statement coverage of `download.sh` |
 | `.github/workflows/lint.yml` | Runs on push and pull request | `shellcheck`; `reuse lint`; checksum files are well formed |
 | `.github/workflows/codeql.yml` | Runs on push, pull request, weekly | CodeQL over the workflows themselves |
 | `.github/workflows/scorecard.yml` | Runs on push, weekly | Publish an OpenSSF Scorecard result anyone can read |
