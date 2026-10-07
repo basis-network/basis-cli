@@ -117,8 +117,10 @@ actually met, with the threat model and the evidence, is in
    checksum is read from your working tree and is never downloaded.
 2. **It fails closed.** A digest that does not match, a version or platform
    with no committed checksum, or a machine with no SHA-256 tool all end in a
-   non-zero exit and a message saying why. Nothing unverified is ever made
-   executable.
+   non-zero exit and a message saying why, and so does a checksum file with a
+   line that cannot be parsed. Nothing unverified is ever made executable, or
+   put where the binary goes: a run that fails or is cut short leaves whatever
+   was already in `bin/<platform>/` as it was.
 3. **Verification does not depend on the network.** Not on TLS holding, not on
    the CDN being honest, not on the release being untampered — only on this
    repository's history, which is public and reviewable.

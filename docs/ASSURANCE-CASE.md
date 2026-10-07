@@ -48,13 +48,17 @@ Adversaries, by what they can do rather than who they are.
 
 *Countered by:* the digest is not on the wire. `download.sh` reads
 `checksums/<tag>/<platform>.sha256` from the working tree and **never
-downloads it**. Substituted bytes fail `sha256sum -c`, the script exits
-non-zero, and nothing is made executable.
+downloads it**. The bytes are fetched into a staging directory and checked
+there. Substituted bytes fail `sha256sum -c`, the script exits non-zero, the
+staging directory is removed, and a binary verified on an earlier run is left
+where it was.
 
 *Evidence:* `test/run.sh` case *"a tampered download is refused"* — the fixture
 publishes one payload and records the digest of a different one, then asserts a
-non-zero exit and `FAILED` in the output. Verified by mutation: disabling the
-check turns the suite red.
+non-zero exit, `FAILED` in the output, and nothing kept. The case *"a download
+that fails verification leaves the binary already there alone"* does the same
+over a binary installed by an earlier run, which is what an upgrade looks like.
+Verified by mutation: disabling the check turns the suite red.
 
 *Residual risk:* TLS itself is trusted for confidentiality, not integrity. If
 TLS were fully broken the checksum still holds. **This is the strongest part of
@@ -144,9 +148,9 @@ Against Saltzer and Schroeder, with the honest answer in each row.
 
 | Principle | How it is applied |
 |---|---|
-| **Fail-safe defaults** | Every path denies by default: no checksum file → exit; no hash tool → exit; digest mismatch → exit non-zero. The binary is made executable only after verification succeeds |
-| **Economy of mechanism** | ~110 lines of bash, no dependency manifest, no configuration file, no persistent state. The whole verification argument fits on one page. This is the principle the design leans on hardest |
-| **Complete mediation** | Every downloaded artefact is checked. The loop verifies *each* name in the checksum file, not just the first — covered by the multi-entry case in the suite |
+| **Fail-safe defaults** | Every path denies by default: no checksum file → exit; no hash tool → exit; a checksum line that is not `<sha256>  <name>` → exit; a checksum file that lists nothing → exit; digest mismatch → exit non-zero. The binary is made executable, and moved out of its staging directory into place, only after verification succeeds |
+| **Economy of mechanism** | ~150 lines of bash, no dependency manifest, no configuration file, no persistent state. The whole verification argument fits on one page. This is the principle the design leans on hardest |
+| **Complete mediation** | Every downloaded artefact is checked. The loop verifies *each* name in the checksum file, not just the first; a line that cannot be parsed is refused rather than skipped, and one entry that fails keeps the whole set out — covered by the multi-entry cases in the suite |
 | **Open design** | Security rests on where the digest travels, not on anything secret. Every line is public and Apache-2.0. There is no private signing key at all |
 | **Separation of privilege** | The core of the design: subverting a download requires control of **both** the release and the git history. Two mechanisms, two audiences, different failure modes |
 | **Least privilege** | Workflows are `read-all` by default, elevated per job only where needed. The script needs no privilege and asks for none; it writes only under its own `bin/` |
@@ -168,7 +172,7 @@ than quietly skipped.
 | **CWE-78** OS command injection | Every expansion is quoted; `shellcheck` runs in CI over all three scripts and fails the build. The file names come from a checksum file whose format CI validates (64 hex characters, and a name that must be `basis` or `basis.exe`) |
 | **CWE-22** Path traversal | Same control: `lint.yml` rejects any checksum line whose name is not one of the two expected. A `../` name never reaches the download loop |
 | **CWE-367** TOCTOU | The verified file is the file kept. Nothing is re-fetched or replaced between checking and use |
-| **CWE-improper-cleanup** | The copied checksum file is removed after verification; the suite asserts it does not stay behind |
+| **CWE-459** Incomplete cleanup | Downloads and the copied checksum file live in a staging directory that is removed when the script exits, whether verification passed or not, and on SIGINT, SIGTERM and SIGHUP. Only SIGKILL, which no script can catch, leaves it behind: hidden inside `bin/<platform>/`, holding nothing executable. The suite asserts nothing is left after a pass, a mismatch and a download that never arrives |
 | **CWE-798** Hard-coded credentials | There are none. The script authenticates to nothing, and nothing in this repository reads a keystore or asks for a passphrase |
 | **CWE-311** Missing encryption | Transport is HTTPS by default; `curl` verifies certificates by default and no flag here disables it |
 | Injection, XSS, deserialisation, SQL, session and access-control weaknesses | **Not applicable.** No parser, no database, no session, no privilege model, no web surface |
