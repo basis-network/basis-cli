@@ -113,9 +113,14 @@ A reviewer checks, in this order:
 3. **Does it weaken a refusal?** Anything touching the verification path, the
    fail-closed exits, or where the checksum comes from gets read line by line
    against [docs/ASSURANCE-CASE.md](./docs/ASSURANCE-CASE.md). This is the one
-   category where "looks fine" is not an acceptable review.
+   category where "looks fine" is not an acceptable review. It includes every
+   change under `checksums/`: CI only checks that a file is well formed, and
+   `download.sh` takes the newest tag it finds, so a plausible-looking
+   directory for a tag with no release would point every user at nothing.
 4. **Permissions and pinning.** A workflow change must keep least-privilege
-   permissions and SHA-pinned actions.
+   permissions and SHA-pinned actions. Neither is enforced by the platform,
+   only by this review. A change to `release.yml` is a change to the signing
+   identity — the certificate names that file — and is read as one.
 5. **Licensing.** Every new file carries an SPDX header or a `REUSE.toml`
    entry; `reuse lint` decides, not opinion.
 6. **Is the documentation still true?** A change that makes a sentence in the
