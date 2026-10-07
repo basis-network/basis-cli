@@ -2,9 +2,11 @@
 
 ## Unreleased
 
-The list below does not change what gets downloaded or how it is verified: it
-makes the verification checked by something other than a person reading the
-script. What did change in `download.sh` has its own heading after the list.
+Most of the list below changes who checks the verification, not what it does:
+a test suite, CI on Linux and on macOS, a private route for reports. The one
+change to `download.sh` in it is the `curl` check, which only makes a missing
+dependency say so. The fix that changes what the script keeps after a failed
+check has its own heading after the list.
 
 - `test/run.sh` — a test suite for `download.sh`, run by `make check` and by CI
   on every pull request. Each case builds a throwaway release in a temporary
