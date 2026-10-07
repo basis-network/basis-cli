@@ -24,7 +24,7 @@ exists so that **no single party controls both**.
 | `.github/workflows/lint.yml` | Runs on push and pull request | `shellcheck`; `reuse lint`; checksum files are well formed |
 | `.github/workflows/codeql.yml` | Runs on push, pull request, weekly | CodeQL over the workflows themselves |
 | `.github/workflows/scorecard.yml` | Runs on push, weekly | Publish an OpenSSF Scorecard result anyone can read |
-| `test/run.sh` | Nine cases, no framework, no network | Prove the refusals still refuse |
+| `test/run.sh` | Sixteen cases, no framework, no network | Prove the refusals still refuse |
 | `test/coverage.sh` | bashcov + a per-line union across sandboxes | Put a number on what the suite reaches |
 
 Nothing here is a library, a service, or a daemon. There is no state that
@@ -46,8 +46,11 @@ survives a run, no configuration file, and no network listener.
            │     linux-x86_64)                             │
            │  3. refuse if there is no checksum file       │
            │  4. refuse if there is no SHA-256 tool        │
-           │  5. fetch each asset named in the checksum    │
-           │  6. verify, and only then keep it             │
+           │  5. refuse if there is no curl                │
+           │  6. fetch each asset named in the checksum    │
+           │     into a staging directory                  │
+           │  7. verify all of them, and only then         │
+           │     move them into place                      │
            └──────────────────────────────────────────────┘
                                 │
                                 ▼

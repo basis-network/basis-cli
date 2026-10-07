@@ -9,9 +9,16 @@ script. What did change in `download.sh` has its own heading after the list.
 - `test/run.sh` — a test suite for `download.sh`, run by `make check` and by CI
   on every pull request. Each case builds a throwaway release in a temporary
   directory and reaches it over `file://`: no network, and no fixture
-  committed. Two of the cases are the failure paths — a tampered download and a
-  machine with nothing to hash with — because a refusal that stops working
-  fails silently.
+  committed. Most of the cases are failure paths, because a refusal that stops
+  working fails silently.
+- The suite also runs on macOS, under the `/bin/bash` 3.2 it ships, and CI
+  shellchecks the test scripts as well as `download.sh` (#36).
+- `download.sh` checks for `curl` before it creates anything or says it is
+  downloading (#32, by Camille Onoda). A machine without it used to print
+  `==> downloading ...` and then die on bash's own `curl: command not found`,
+  which read like a download that failed rather than a missing dependency. The
+  check comes after the one for a SHA-256 tool, so a machine with neither still
+  says it cannot verify.
 - `Makefile` with `check` and `lint`, so both are one word.
 - Vulnerabilities can now be reported through a
   [private GitHub advisory](https://github.com/basis-network/basis-cli/security/advisories/new)

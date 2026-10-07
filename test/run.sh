@@ -16,9 +16,10 @@
 # strings.
 #
 # What is worth testing is what the script promises: that a download which does
-# not match the checksum kept in this repository does not reach the user. Two
-# of the cases below are the failure paths, and they are the reason this file
-# exists.
+# not match the checksum kept in this repository does not reach the user. Most
+# of the cases below are failure paths -- a tampered download, a failed
+# upgrade, a malformed checksum line, a machine without a hash tool or without
+# curl -- and they are the reason this file exists.
 # ---------------------------------------------------------------------------
 set -uo pipefail
 
@@ -32,7 +33,7 @@ failed=0
 # The world each case runs in.
 # --------------------------------------------------------------------------
 
-# Same fallback as the script under test: macOS ships `shasum`, not
+# Same fallback as the script under test: older macOS ships `shasum` and no
 # `sha256sum`. If neither is here the suite cannot check anything.
 if command -v sha256sum >/dev/null 2>&1; then
   sum() { sha256sum "$1" | cut -d' ' -f1; }
@@ -261,6 +262,10 @@ if command -v sha256sum >/dev/null 2>&1; then
 else
   hash_tool=shasum
 fi
+# The PATH of the shasum case below, minus curl: everything the script needs
+# before and after the check is on it, so without the check it would get as
+# far as curl itself and fail there. The hash tool is on it because that check
+# comes first, and it is whichever one this machine has, as in `sum()`.
 mkdir -p "$work/bin"
 for tool in bash dirname basename sort tail mkdir mktemp cp mv rm chmod "$hash_tool"; do
   ln -s "$(command -v "$tool")" "$work/bin/$tool"
@@ -268,17 +273,19 @@ done
 out="$(cd "$work/repo" && PATH="$work/bin" BASIS_CLI_BASE_URL="file://$work/releases" \
   ./download.sh linux-x86_64 2>&1)"; status=$?
 equal 'exits 1' "$status" 1
-mentions 'and says why' 'curl'
-absent 'and nothing was downloaded' "$work/repo/bin/linux-x86_64/basis"
+# Not just 'curl': bash's own "curl: command not found" contains that too, so
+# only the script's message and the missing directory tell the check happened.
+mentions 'and says why' 'curl not found'
+absent 'and nothing was written' "$work/repo/bin/linux-x86_64"
 cleanup "$work"
 
-case_ 'without sha256sum it falls back to shasum, which is what macOS ships'
+case_ 'without sha256sum it falls back to shasum, which is all older macOS has'
 if command -v shasum >/dev/null 2>&1; then
   work="$(sandbox)"
   publish "$work" v0.1.0 linux-x86_64 basis 'the linux binary'
-  # Same trick as the case above, one tool further: this PATH has shasum and
-  # everything the download itself needs, but no sha256sum. It is the only way
-  # to reach that branch on a machine that has both.
+  # The same trick as the two cases above: this PATH has shasum and everything
+  # the download itself needs, but no sha256sum. It is the only way to reach
+  # that branch on a machine that has both.
   mkdir -p "$work/bin"
   for tool in bash dirname basename sort tail curl mkdir mktemp cp mv rm chmod shasum; do
     ln -s "$(command -v "$tool")" "$work/bin/$tool"

@@ -148,9 +148,11 @@ make check
 
 Each case builds a throwaway release in a temporary directory and points
 `download.sh` at it over `file://`: no network, and nothing binary in the tree —
-the fixtures are made at run time. Two of the cases are the failure paths, a
-tampered download and a machine with nothing to hash with, because refusing
-those is what this repository is for. CI runs the suite on every pull request.
+the fixtures are made at run time. Most of the cases are failure paths — a
+tampered download, a failed upgrade over a verified binary, a malformed
+checksum line, a machine with nothing to hash with or no `curl` — because
+refusing those is what this repository is for. CI runs the suite on every pull
+request, on Linux and on macOS.
 
 How much of the script those cases actually reach is measured rather than
 claimed:
@@ -159,7 +161,7 @@ claimed:
 make coverage       # needs bashcov: gem install bashcov
 ```
 
-**98.1% statement coverage** of `download.sh`, 52 of 53 statements, enforced at
+**98.6% statement coverage** of `download.sh`, 73 of 74 statements, enforced at
 90% in CI.
 
 ## Project
