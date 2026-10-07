@@ -63,8 +63,9 @@ is committed — the fixtures are made at run time out of strings.
 **A change to what `download.sh` does comes with a test.** That is the rule,
 and it is not ceremony: this script exists to refuse a download that does not
 match the checksum committed here, and a refusal that stops working is silent.
-Two of the cases are exactly that path — a tampered binary and a machine with
-nothing to hash with — and they are the reason the file exists.
+Most of the cases are exactly that path — a tampered binary, a failed upgrade,
+a malformed checksum line, a machine with nothing to hash with — and they are
+the reason the file exists.
 
 If your change is to a comment or to the docs, no test is needed. If it changes
 behaviour, say in the pull request which case covers it.
@@ -119,6 +120,12 @@ A reviewer checks, in this order:
    entry; `reuse lint` decides, not opinion.
 6. **Is the documentation still true?** A change that makes a sentence in the
    README wrong includes the fix for that sentence.
+
+CI on a pull request from outside the project waits for a maintainer to approve
+the run — on every push, not only the first, because that is how this
+repository is configured. If a run on yours has waited more than two working
+days, say so in the pull request: it means we missed it, not that the change is
+unwelcome.
 
 A pull request is acceptable when all CI checks pass and a maintainer other
 than the author has approved it. **Today that is not always possible**: the

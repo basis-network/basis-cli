@@ -123,11 +123,13 @@ log makes such a signature permanent and public, which is the point.
 
 *Countered by:* fail-closed. No `sha256sum` and no `shasum` means exit 1
 **before any network access** — the tool refuses rather than fetching what it
-cannot check. An unknown platform is an error that lists what is known, not a
-guess.
+cannot check. No `curl` is exit 1 too, before anything is created, rather than
+a download that seems to start and then dies. An unknown platform is an error
+that lists what is known, not a guess.
 
 *Evidence:* cases *"with nothing to check the checksum with, it refuses instead
-of guessing"* (asserts nothing was downloaded) and *"a platform this repository
+of guessing"* (asserts nothing was downloaded), *"without curl it refuses before
+downloading"* (asserts nothing was written) and *"a platform this repository
 knows nothing about is an error, not a download"*.
 
 ### T6 — Supply chain of the tooling itself
@@ -148,7 +150,7 @@ Against Saltzer and Schroeder, with the honest answer in each row.
 
 | Principle | How it is applied |
 |---|---|
-| **Fail-safe defaults** | Every path denies by default: no checksum file → exit; no hash tool → exit; a checksum line that is not `<sha256>  <name>` → exit; a checksum file that lists nothing → exit; digest mismatch → exit non-zero. The binary is made executable, and moved out of its staging directory into place, only after verification succeeds |
+| **Fail-safe defaults** | Every path denies by default: no checksum file → exit; no hash tool → exit; no `curl` → exit; a checksum line that is not `<sha256>  <name>` → exit; a checksum file that lists nothing → exit; digest mismatch → exit non-zero. The binary is made executable, and moved out of its staging directory into place, only after verification succeeds |
 | **Economy of mechanism** | ~150 lines of bash, no dependency manifest, no configuration file, no persistent state. The whole verification argument fits on one page. This is the principle the design leans on hardest |
 | **Complete mediation** | Every downloaded artefact is checked. The loop verifies *each* name in the checksum file, not just the first; a line that cannot be parsed is refused rather than skipped, and one entry that fails keeps the whole set out — covered by the multi-entry cases in the suite |
 | **Open design** | Security rests on where the digest travels, not on anything secret. Every line is public and Apache-2.0. There is no private signing key at all |
@@ -181,8 +183,8 @@ than quietly skipped.
 
 | Claim | Where to check it |
 |---|---|
-| The refusals refuse | `test/run.sh` — 9 cases, 28 assertions, run on every push and pull request |
-| The suite reaches the code | `make coverage` — 98.1% statement coverage of `download.sh`, enforced at 90% in CI |
+| The refusals refuse | `test/run.sh` — 16 cases, 59 assertions, run on every push and pull request |
+| The suite reaches the code | `make coverage` — 98.6% statement coverage of `download.sh`, enforced at 90% in CI |
 | The script is statically clean | `shellcheck` in `lint.yml`, required before merge |
 | Workflows are analysed as code | CodeQL `actions` support, `codeql.yml` |
 | Checksum files cannot smuggle a name | `lint.yml`, job *checksum files are well formed* |

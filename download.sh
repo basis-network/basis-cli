@@ -68,7 +68,8 @@ sums="$here/checksums/$VERSION/$PLATFORM.sha256"
   exit 1
 }
 
-# macOS ships `shasum`, not `sha256sum`. Both read the same file format.
+# Older macOS ships `shasum` and no `sha256sum`; newer versions have both. They
+# read the same file format.
 if command -v sha256sum >/dev/null 2>&1; then
   check() { sha256sum -c "$1"; }
 elif command -v shasum >/dev/null 2>&1; then

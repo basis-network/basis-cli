@@ -39,8 +39,8 @@ jobs:
   # The same suite on a Mac, with nothing on PATH but what macOS itself ships:
   # /bin/bash 3.2, /usr/bin/shasum and the BSD tools. The runner image puts
   # newer versions ahead of those, and a job that ran them would be testing a
-  # Mac nobody has. This is where the `shasum` fallback runs for real, and
-  # where a construct bash 3.2 cannot parse fails before it is merged.
+  # Mac nobody has. This is where the `shasum` fallback case runs on a real
+  # Mac, and where a construct bash 3.2 cannot parse fails before it is merged.
   suite-macos:
     name: download.sh test suite (macOS)
     runs-on: macos-latest
