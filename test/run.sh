@@ -104,7 +104,10 @@ check() {
 equal() { local w="$1" a="$2" b="$3"; check "$w" "$([ "$a" = "$b" ] && echo yes || echo no)"; }
 exists() { local w="$1" f="$2"; check "$w" "$([ -f "$f" ] && echo yes || echo no)"; }
 absent() { local w="$1" f="$2"; check "$w" "$([ ! -e "$f" ] && echo yes || echo no)"; }
-mentions() { local w="$1" t="$2"; check "$w" "$(case "${out:-}" in *"$t"*) echo yes ;; *) echo no ;; esac)"; }
+# Both patterns open with `(`, which bash always allows and here needs: the
+# bash 3.2 that macOS ships ends a command substitution at the first `)` it
+# sees, so without them every call below is a syntax error on a stock Mac.
+mentions() { local w="$1" t="$2"; check "$w" "$(case "${out:-}" in (*"$t"*) echo yes ;; (*) echo no ;; esac)"; }
 
 case_() { printf '\n%s\n' "$1"; }
 
